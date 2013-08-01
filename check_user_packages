@@ -1,0 +1,17 @@
+#! /bin/bash
+###
+
+echo > pack.txt
+for i in `ls /home/`
+do
+        if [ -d /home/$i ]; then
+                if [ -e /usr/local/directadmin/data/users/$i/user.conf ]; then
+                        echo -n $i"    -    " >> pack.txt
+                        less /usr/local/directadmin/data/users/$i/user.conf|grep package| cut -d= -f2 >> pack.txt
+                fi
+        fi
+done
+
+sort -k2 pack.txt > sorted_pack.txt
+
+exit 0
