@@ -1,0 +1,72 @@
+#! /bin/bash
+###
+
+function check_joomla {
+
+cd $versionpath
+
+if [ -e version.php ]; then
+prod=$(less version.php | grep -w '\$PRODUCT'|cut -d\' -f2)
+rel=$(less version.php | grep -w '\$RELEASE'|cut -d\' -f2)
+status=$(less version.php | grep -w '\$DEV_STATUS'|cut -d\' -f2)
+level=$( less version.php | grep -w '\$DEV_LEVEL'|cut -d\' -f2)
+echo -n $prod" "$status" "$rel"."$level " = user " $i >> /opt/tools/joomla.txt
+check_domain
+check_jce
+echo >> /opt/tools/joomla.txt
+else
+echo -n = ' still not a proper Joomla DUMMY ' >> /opt/tools/users.txt
+fi
+
+}
+
+
+function check_domain {
+for j in `ls /home/$i/domains/`
+do
+echo -n " # "$j >> /opt/tools/joomla.txt
+done
+}
+
+function check_jce {
+jce_path=$path"/administrator/components/com_jce/"
+if [ -d $jce_path ]; then
+        cd $jce_path
+        if [ -e jce.xml ]; then
+                f1="$(less jce.xml|grep '<version>'|cut -f2 -d">"|cut -f1 -d"<")"
+                echo -n " ### JCE version "$f1" ###" >> /opt/tools/jce.txt
+                echo " http://"$j"/administrator/ " >> /opt/tools/jce.txt
+###             echo >> /opt/tools/jce.txt
+        fi
+fi
+}
+
+### main program ###
+echo > /opt/tools/joomla.txt
+echo "JCE current version 2.3.1" > /opt/tools/jce.txt
+for i in `ls /home`
+do
+supath="/home/"$i
+path="/home/"$i"/public_html"
+versionpath1="/home/"$i"/public_html/libraries/cms/version/version.php"
+versionpath2="/home/"$i"/public_html/libraries/joomla/version.php"
+versionpath3="/home/"$i"/public_html/includes/version.php"
+echo -n $i ", " $supath ", " $path ", !" >> /opt/tools/users.txt
+if [ -d $path ]; then
+if [ -e $versionpath1 ]; then
+versionpath="/home/"$i"/public_html/libraries/cms/version/"
+check_joomla
+elif [ -e $versionpath2 ]; then
+versionpath="/home/"$i"/public_html/libraries/joomla/"
+check_joomla
+elif [ -e $versionpath3 ]; then
+versionpath="/home/"$i"/public_html/includes/"
+check_joomla
+else echo -n " "$i" is geen geldige Joomla installatie" >> /opt/tools/users.txt
+fi
+else echo -n " geen geldige user" >> /opt/tools/users.txt
+fi
+echo >> /opt/tools/users.txt
+less /opt/tools/jce.txt| sort > /opt/tools/jce_sort.txt
+
+done
